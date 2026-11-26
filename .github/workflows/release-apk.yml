@@ -1,0 +1,116 @@
+name: Build and Release APK
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Release Tag 名稱（例如 v1.0.0；留空將自動使用 v<versionName>-build.<run_number>）"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Resolve release tag
+        id: meta
+        env:
+          INPUT_TAG: ${{ inputs.tag_name }}
+        run: |
+          if [ -n "$INPUT_TAG" ]; then
+            TAG="$INPUT_TAG"
+          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF_NAME}"
+          else
+            VERSION_NAME=$(grep -E 'versionName\s*=' app/build.gradle.kts | head -n1 | sed -E 's/.*"([^"]+)".*/\1/')
+            VERSION_NAME=${VERSION_NAME:-1.0.0}
+            TAG="v${VERSION_NAME}-build.${GITHUB_RUN_NUMBER}"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Run unit tests and build Debug APK
+        run: ./gradlew testDebugUnitTest assembleDebug --no-daemon
+
+      - name: Build and sign Release APK (when keystore secrets are configured)
+        id: release_sign
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ] && [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
+            ./gradlew assembleRelease --no-daemon
+            echo "$KEYSTORE_BASE64" | base64 -d > release-keystore.jks
+            APKSIGNER=$(find "${ANDROID_HOME}/build-tools" -name apksigner | sort -V | tail -n1)
+            UNSIGNED_APK="app/build/outputs/apk/release/app-release-unsigned.apk"
+            SIGNED_APK="app/build/outputs/apk/release/app-release-signed.apk"
+            "$APKSIGNER" sign \
+              --ks release-keystore.jks \
+              --ks-pass "pass:${KEYSTORE_PASSWORD}" \
+              --key-pass "pass:${KEY_PASSWORD}" \
+              --ks-key-alias "$KEY_ALIAS" \
+              --out "$SIGNED_APK" \
+              "$UNSIGNED_APK"
+            rm -f release-keystore.jks
+            echo "has_signed_release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_signed_release=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Package APK artifacts for Release
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+          HAS_SIGNED_RELEASE: ${{ steps.release_sign.outputs.has_signed_release }}
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk "dist/ClassRecorder-${TAG}-debug.apk"
+          if [ "$HAS_SIGNED_RELEASE" = "true" ] && [ -f app/build/outputs/apk/release/app-release-signed.apk ]; then
+            cp app/build/outputs/apk/release/app-release-signed.apk "dist/ClassRecorder-${TAG}-release.apk"
+          fi
+          (cd dist && sha256sum *.apk > "ClassRecorder-${TAG}-checksums.sha256")
+          ls -lh dist
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          HAS_SIGNED_RELEASE: ${{ steps.release_sign.outputs.has_signed_release }}
+        run: |
+          NOTES="自動建置發佈版本 \`${TAG}\`（已通過單元測試）。"$'\n\n'
+          if [ "$HAS_SIGNED_RELEASE" = "true" ]; then
+            NOTES="${NOTES}- \`ClassRecorder-${TAG}-release.apk\`：已簽章 Release 版本，可直接安裝於 Android 手機。"$'\n'
+          fi
+          NOTES="${NOTES}- \`ClassRecorder-${TAG}-debug.apk\`：Debug 簽章版本，可直接下載安裝測試。"
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* \
+              --target "$GITHUB_SHA" \
+              --title "課時錄音記 ClassRecorder ${TAG}" \
+              --notes "$NOTES" \
+              --generate-notes
+          fi

@@ -34,3 +34,14 @@ Android 14（API 34+）起禁止 App 在背景冷啟動 `FOREGROUND_SERVICE_TYPE
 ```
 
 產出的 Debug APK 位於 `app/build/outputs/apk/debug/app-debug.apk`。
+
+## GitHub Actions 自動建置與 Release 發佈
+
+本專案包含兩個 GitHub Actions 工作流程：
+- [`.github/workflows/android-ci.yml`](.github/workflows/android-ci.yml)：每次推送至 `main` 或發起 PR 時自動執行單元測試與 Debug APK 建置。
+- [`.github/workflows/release-apk.yml`](.github/workflows/release-apk.yml)：推送 `v*` 標籤（例如 `v1.0.0`）或手動執行 Workflow 時，自動建置 APK 並發佈至 GitHub **Releases** 頁面（若於 Repository Secrets 設定 `KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD`，亦會同步簽章產出 Release 版 APK）。
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
