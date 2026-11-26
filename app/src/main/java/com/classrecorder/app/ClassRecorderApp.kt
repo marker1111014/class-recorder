@@ -32,6 +32,7 @@ class ClassRecorderApp : Application() {
         NotificationHelper.ensureChannels(this)
 
         applicationScope.launch {
+            repository.migrateUntouchedV1DefaultPeriodsIfNeeded()
             repository.recoverDanglingRecordings()
             AlarmScheduler.rescheduleNextAlarm(this@ClassRecorderApp, repository)
         }

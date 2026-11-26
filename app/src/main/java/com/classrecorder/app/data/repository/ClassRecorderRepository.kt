@@ -132,6 +132,65 @@ class ClassRecorderRepository(
         }
     }
 
+    suspend fun upsertTimetableSlotsBatch(
+        dayOfWeek: Int,
+        periodIds: List<Long>,
+        enabled: Boolean,
+        courseName: String,
+        classroom: String = "",
+        colorTag: Int = 0
+    ) {
+        periodIds.distinct().forEach { periodId ->
+            upsertTimetableSlot(
+                dayOfWeek = dayOfWeek,
+                periodId = periodId,
+                enabled = enabled,
+                courseName = courseName,
+                classroom = classroom,
+                colorTag = colorTag
+            )
+        }
+    }
+
+    suspend fun migrateUntouchedV1DefaultPeriodsIfNeeded() {
+        if (preferences.isDefaultPeriodsV2Migrated()) return
+        val current = periodDao.getAll()
+        val oldDefaults = AppDatabase.OLD_V1_DEFAULT_PERIODS
+        val newDefaults = AppDatabase.DEFAULT_UNIVERSITY_PERIODS
+
+        val matchesUntouchedV1 = current.size == oldDefaults.size &&
+            current.zip(oldDefaults).all { (cur, old) ->
+                cur.orderIndex == old.orderIndex &&
+                    cur.name == old.name &&
+                    cur.startMinuteOfDay == old.startMinuteOfDay &&
+                    cur.endMinuteOfDay == old.endMinuteOfDay
+            }
+
+        if (matchesUntouchedV1) {
+            // Update periods 1..8 in place to preserve existing TimetableSlotEntity foreign keys
+            current.forEachIndexed { index, existing ->
+                val target = newDefaults[index]
+                if (existing.startMinuteOfDay != target.startMinuteOfDay ||
+                    existing.endMinuteOfDay != target.endMinuteOfDay
+                ) {
+                    periodDao.update(
+                        existing.copy(
+                            startMinuteOfDay = target.startMinuteOfDay,
+                            endMinuteOfDay = target.endMinuteOfDay
+                        )
+                    )
+                }
+            }
+            // Append period 9
+            if (newDefaults.size > current.size) {
+                newDefaults.drop(current.size).forEach { p9 ->
+                    periodDao.insert(p9)
+                }
+            }
+        }
+        preferences.setDefaultPeriodsV2Migrated(true)
+    }
+
     suspend fun applySampleMorning34Schedule() {
         val periods = periodDao.getAll()
         val p3 = periods.firstOrNull { it.orderIndex == 3 } ?: periods.getOrNull(2)

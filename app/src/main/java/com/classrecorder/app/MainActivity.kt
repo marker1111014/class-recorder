@@ -283,8 +283,11 @@ private fun ClassRecorderRoot(
 
                 AppTab.TIMETABLE -> TimetableScreen(
                     uiState = uiState,
-                    onSaveTimetableSlot = { dow, periodId, enabled, courseName, classroom, colorTag ->
-                        viewModel.saveTimetableSlot(dow, periodId, enabled, courseName, classroom, colorTag)
+                    onSaveTimetableSlotsBatch = { dow, periodIds, enabled, courseName, classroom, colorTag ->
+                        viewModel.saveTimetableSlotsBatch(dow, periodIds, enabled, courseName, classroom, colorTag)
+                    },
+                    onQuickPaintSlot = { dow, periodId, courseName, classroom, colorTag, eraseMode ->
+                        viewModel.quickPaintTimetableSlot(dow, periodId, courseName, classroom, colorTag, eraseMode)
                     },
                     onApplySampleMorning34 = { viewModel.applySampleMorning34Schedule() },
                     onSavePeriod = { viewModel.savePeriod(it) },

@@ -28,7 +28,7 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        val DEFAULT_UNIVERSITY_PERIODS = listOf(
+        val OLD_V1_DEFAULT_PERIODS = listOf(
             PeriodDefinitionEntity(orderIndex = 1, name = "第 1 節", startMinuteOfDay = 8 * 60 + 10, endMinuteOfDay = 9 * 60),
             PeriodDefinitionEntity(orderIndex = 2, name = "第 2 節", startMinuteOfDay = 9 * 60 + 10, endMinuteOfDay = 10 * 60),
             PeriodDefinitionEntity(orderIndex = 3, name = "第 3 節", startMinuteOfDay = 10 * 60 + 10, endMinuteOfDay = 11 * 60),
@@ -37,6 +37,18 @@ abstract class AppDatabase : RoomDatabase() {
             PeriodDefinitionEntity(orderIndex = 6, name = "第 6 節", startMinuteOfDay = 14 * 60 + 10, endMinuteOfDay = 15 * 60),
             PeriodDefinitionEntity(orderIndex = 7, name = "第 7 節", startMinuteOfDay = 15 * 60 + 10, endMinuteOfDay = 16 * 60),
             PeriodDefinitionEntity(orderIndex = 8, name = "第 8 節", startMinuteOfDay = 16 * 60 + 10, endMinuteOfDay = 17 * 60)
+        )
+
+        val DEFAULT_UNIVERSITY_PERIODS = listOf(
+            PeriodDefinitionEntity(orderIndex = 1, name = "第 1 節", startMinuteOfDay = 8 * 60 + 10, endMinuteOfDay = 9 * 60),
+            PeriodDefinitionEntity(orderIndex = 2, name = "第 2 節", startMinuteOfDay = 9 * 60 + 10, endMinuteOfDay = 10 * 60),
+            PeriodDefinitionEntity(orderIndex = 3, name = "第 3 節", startMinuteOfDay = 10 * 60 + 10, endMinuteOfDay = 11 * 60),
+            PeriodDefinitionEntity(orderIndex = 4, name = "第 4 節", startMinuteOfDay = 11 * 60 + 10, endMinuteOfDay = 12 * 60),
+            PeriodDefinitionEntity(orderIndex = 5, name = "第 5 節", startMinuteOfDay = 12 * 60 + 50, endMinuteOfDay = 13 * 60 + 40),
+            PeriodDefinitionEntity(orderIndex = 6, name = "第 6 節", startMinuteOfDay = 13 * 60 + 50, endMinuteOfDay = 14 * 60 + 40),
+            PeriodDefinitionEntity(orderIndex = 7, name = "第 7 節", startMinuteOfDay = 14 * 60 + 50, endMinuteOfDay = 15 * 60 + 40),
+            PeriodDefinitionEntity(orderIndex = 8, name = "第 8 節", startMinuteOfDay = 15 * 60 + 50, endMinuteOfDay = 16 * 60 + 40),
+            PeriodDefinitionEntity(orderIndex = 9, name = "第 9 節", startMinuteOfDay = 16 * 60 + 50, endMinuteOfDay = 17 * 60 + 40)
         )
 
         val HIGH_SCHOOL_PERIODS = listOf(

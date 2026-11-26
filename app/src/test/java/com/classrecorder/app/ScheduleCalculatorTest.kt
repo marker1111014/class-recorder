@@ -146,4 +146,61 @@ class ScheduleCalculatorTest {
         assertNotNull(ScheduleCalculator.validatePeriodTime(700, 600))
         assertNull(ScheduleCalculator.validatePeriodTime(610, 660))
     }
+
+    @Test
+    fun defaultUniversityPeriods_matchExpectedNinePeriodSchedule() {
+        val defaults = com.classrecorder.app.data.db.AppDatabase.DEFAULT_UNIVERSITY_PERIODS
+        assertEquals(9, defaults.size)
+
+        val expectedRanges = listOf(
+            1 to ("08:10" to "09:00"),
+            2 to ("09:10" to "10:00"),
+            3 to ("10:10" to "11:00"),
+            4 to ("11:10" to "12:00"),
+            5 to ("12:50" to "13:40"),
+            6 to ("13:50" to "14:40"),
+            7 to ("14:50" to "15:40"),
+            8 to ("15:50" to "16:40"),
+            9 to ("16:50" to "17:40")
+        )
+
+        defaults.zip(expectedRanges).forEach { (period, expected) ->
+            val (order, times) = expected
+            assertEquals(order, period.orderIndex)
+            assertEquals(times.first, FilenameHelper.formatMinuteOfDay(period.startMinuteOfDay))
+            assertEquals(times.second, FilenameHelper.formatMinuteOfDay(period.endMinuteOfDay))
+            assertEquals(50, period.endMinuteOfDay - period.startMinuteOfDay)
+        }
+
+        // Verify afternoon period 5 (12:50~13:40) and period 9 (16:50~17:40) schedule resolution
+        val withIds = defaults.map { it.copy(id = it.orderIndex.toLong()) }
+        val wedSlots = listOf(
+            TimetableSlotEntity(id = 10, dayOfWeek = 3, periodId = 5L, enabled = true, courseName = "資料結構"),
+            TimetableSlotEntity(id = 11, dayOfWeek = 3, periodId = 6L, enabled = true, courseName = "資料結構"),
+            TimetableSlotEntity(id = 12, dayOfWeek = 3, periodId = 9L, enabled = true, courseName = "通識講座")
+        )
+        val t1245 = ZonedDateTime.of(wednesday, LocalTime.of(12, 45), zone)
+        val next = ScheduleCalculator.computeNextAlarmTarget(
+            now = t1245,
+            periods = withIds,
+            timetableSlots = wedSlots,
+            skippedKeys = emptySet(),
+            zoneId = zone
+        )
+        assertTrue(next is NextAlarmTarget.StartSlot)
+        assertEquals(5L, (next as NextAlarmTarget.StartSlot).instance.period.id)
+        assertEquals("12:50~13:40", next.instance.timeRangeText)
+
+        val t1655 = ZonedDateTime.of(wednesday, LocalTime.of(16, 55), zone)
+        val active9 = ScheduleCalculator.computeNextAlarmTarget(
+            now = t1655,
+            periods = withIds,
+            timetableSlots = wedSlots,
+            skippedKeys = emptySet(),
+            zoneId = zone
+        )
+        assertTrue(active9 is NextAlarmTarget.StopSlot)
+        assertEquals(9L, (active9 as NextAlarmTarget.StopSlot).instance.period.id)
+        assertEquals("16:50~17:40", active9.instance.timeRangeText)
+    }
 }

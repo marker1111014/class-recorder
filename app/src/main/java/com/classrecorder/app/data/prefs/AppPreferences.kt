@@ -59,6 +59,7 @@ class AppPreferences(private val context: Context) {
         val START_BUFFER_SEC = intPreferencesKey("start_buffer_sec")
         val END_BUFFER_SEC = intPreferencesKey("end_buffer_sec")
         val AI_PROMPT_TEMPLATE = stringPreferencesKey("ai_prompt_template")
+        val MIGRATED_DEFAULT_PERIODS_V2 = booleanPreferencesKey("migrated_default_periods_v2")
     }
 
     val settingsFlow: Flow<UserSettings> = context.dataStore.data.map { prefs ->
@@ -74,6 +75,14 @@ class AppPreferences(private val context: Context) {
     }
 
     suspend fun getSettings(): UserSettings = settingsFlow.first()
+
+    suspend fun isDefaultPeriodsV2Migrated(): Boolean {
+        return context.dataStore.data.first()[Keys.MIGRATED_DEFAULT_PERIODS_V2] ?: false
+    }
+
+    suspend fun setDefaultPeriodsV2Migrated(migrated: Boolean) {
+        context.dataStore.edit { it[Keys.MIGRATED_DEFAULT_PERIODS_V2] = migrated }
+    }
 
     suspend fun setScheduleEnabled(enabled: Boolean) {
         context.dataStore.edit { it[Keys.SCHEDULE_ENABLED] = enabled }

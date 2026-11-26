@@ -288,16 +288,60 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun saveTimetableSlot(
+    fun saveTimetableSlotsBatch(
         dayOfWeek: Int,
-        periodId: Long,
+        periodIds: List<Long>,
         enabled: Boolean,
         courseName: String,
         classroom: String,
         colorTag: Int
     ) {
         viewModelScope.launch {
-            repository.upsertTimetableSlot(dayOfWeek, periodId, enabled, courseName, classroom, colorTag)
+            repository.upsertTimetableSlotsBatch(
+                dayOfWeek = dayOfWeek,
+                periodIds = periodIds,
+                enabled = enabled,
+                courseName = courseName,
+                classroom = classroom,
+                colorTag = colorTag
+            )
+            syncScheduleWithServiceAndAlarms()
+            if (periodIds.size > 1) {
+                val action = if (enabled) "已套用至 ${periodIds.size} 節" else "已清除 ${periodIds.size} 節"
+                _snackbarMessages.tryEmit("$action「${courseName.ifBlank { "課堂錄音" }}」")
+            }
+        }
+    }
+
+    fun quickPaintTimetableSlot(
+        dayOfWeek: Int,
+        periodId: Long,
+        courseName: String,
+        classroom: String,
+        colorTag: Int,
+        eraseMode: Boolean
+    ) {
+        viewModelScope.launch {
+            val current = uiState.value.timetableSlots.firstOrNull {
+                it.dayOfWeek == dayOfWeek && it.periodId == periodId
+            }
+            if (eraseMode) {
+                repository.upsertTimetableSlot(dayOfWeek, periodId, enabled = false, courseName = "", classroom = "", colorTag = 0)
+            } else {
+                val cleanName = courseName.trim()
+                val cleanRoom = classroom.trim()
+                val sameAsExisting = current != null &&
+                    current.enabled &&
+                    current.courseName == cleanName &&
+                    current.classroom == cleanRoom &&
+                    current.colorTag == colorTag
+
+                if (sameAsExisting) {
+                    repository.upsertTimetableSlot(dayOfWeek, periodId, enabled = false, courseName = "", classroom = "", colorTag = 0)
+                } else {
+                    repository.upsertTimetableSlot(dayOfWeek, periodId, enabled = true, courseName = cleanName, classroom = cleanRoom, colorTag = colorTag)
+                }
+            }
             syncScheduleWithServiceAndAlarms()
         }
     }
@@ -330,7 +374,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             repository.applyPeriodPreset(AppDatabase.DEFAULT_UNIVERSITY_PERIODS)
             syncScheduleWithServiceAndAlarms()
-            _snackbarMessages.tryEmit("已套用標準大學 1~8 節時間表（08:10 起）")
+            _snackbarMessages.tryEmit("已套用預設 1~9 節時間表（早 08:10 起／午 12:50 起）")
         }
     }
 
