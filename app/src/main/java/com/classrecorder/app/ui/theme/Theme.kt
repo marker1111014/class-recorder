@@ -1,11 +1,14 @@
 package com.classrecorder.app.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
 private val LightColorScheme = lightColorScheme(
     primary = IndigoPrimary,
@@ -55,6 +58,14 @@ private val DarkColorScheme = darkColorScheme(
     outline = OutlineDark
 )
 
+private val SquareShapes = Shapes(
+    extraSmall = RoundedCornerShape(0.dp),
+    small = RoundedCornerShape(0.dp),
+    medium = RoundedCornerShape(0.dp),
+    large = RoundedCornerShape(0.dp),
+    extraLarge = RoundedCornerShape(0.dp)
+)
+
 @Composable
 fun ClassRecorderTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -65,6 +76,7 @@ fun ClassRecorderTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = AppTypography,
+        shapes = SquareShapes,
         content = content
     )
 }

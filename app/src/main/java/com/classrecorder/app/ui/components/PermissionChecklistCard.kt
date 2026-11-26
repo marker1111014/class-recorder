@@ -9,9 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.classrecorder.app.ui.PermissionStatus
@@ -36,7 +36,7 @@ fun PermissionChecklistCard(
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RectangleShape,
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
@@ -45,41 +45,36 @@ fun PermissionChecklistCard(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                text = "背景自動錄音穩定度檢查",
+                text = "權限狀態",
                 style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = "Android 14+ 會限制背景自動啟用麥克風；完成以下設定並在上課前開啟「排程守候」，可確保每節課準時開錄不斷線。",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             PermissionItemRow(
-                label = "麥克風錄音權限",
-                description = "錄製課堂音訊必備",
+                label = "麥克風",
+                description = "錄製課堂音訊",
                 granted = status.hasRecordAudio,
                 actionLabel = "授權",
                 onAction = onRequestRecordAudio
             )
             PermissionItemRow(
-                label = "通知顯示權限",
-                description = "顯示錄音守候狀態列與時間到提醒",
+                label = "通知",
+                description = "狀態列與排程提醒",
                 granted = status.hasNotifications,
                 actionLabel = "授權",
                 onAction = onRequestNotifications
             )
             PermissionItemRow(
-                label = "精準鬧鐘與提醒權限",
-                description = "確保 10:10、11:10 等節次準時觸發",
+                label = "精準鬧鐘",
+                description = "準時啟動排程",
                 granted = status.hasExactAlarm,
-                actionLabel = "前往設定",
+                actionLabel = "設定",
                 onAction = onOpenExactAlarmSettings
             )
             PermissionItemRow(
-                label = "背景電池無限制",
-                description = "避免手機休眠或省電模式中斷錄音",
+                label = "電池不受限制",
+                description = "避免背景休眠中斷",
                 granted = status.isIgnoringBatteryOptimizations,
-                actionLabel = "設為不受限制",
+                actionLabel = "設定",
                 onAction = onOpenBatteryOptimizationSettings
             )
         }
@@ -99,10 +94,10 @@ private fun PermissionItemRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = if (granted) Icons.Rounded.CheckCircle else Icons.Rounded.WarningAmber,
+            imageVector = if (granted) Icons.Rounded.Check else Icons.Rounded.WarningAmber,
             contentDescription = null,
             tint = if (granted) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.tertiary,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(18.dp)
         )
         Spacer(modifier = Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
@@ -127,7 +122,7 @@ private fun PermissionItemRow(
         } else {
             OutlinedButton(
                 onClick = onAction,
-                shape = RoundedCornerShape(10.dp)
+                shape = RectangleShape
             ) {
                 Text(actionLabel)
             }

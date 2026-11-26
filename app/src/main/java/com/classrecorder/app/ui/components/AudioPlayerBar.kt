@@ -7,17 +7,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.FilledTonalIconButton
@@ -32,8 +28,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -52,9 +48,9 @@ fun AudioPlayerBar(
     AnimatedVisibility(visible = playbackState.activeRecordingId != null) {
         Surface(
             modifier = modifier.fillMaxWidth(),
+            shape = RectangleShape,
             color = MaterialTheme.colorScheme.surfaceVariant,
-            tonalElevation = 4.dp,
-            shadowElevation = 6.dp
+            tonalElevation = 2.dp
         ) {
             Column(
                 modifier = Modifier
@@ -65,13 +61,6 @@ fun AudioPlayerBar(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Rounded.GraphicEq,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = playbackState.title.ifBlank { "課堂錄音" },
@@ -85,7 +74,7 @@ fun AudioPlayerBar(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    TextButton(onClick = onCycleSpeed) {
+                    TextButton(onClick = onCycleSpeed, shape = RectangleShape) {
                         val speedStr = if (playbackState.speed % 1.0f == 0f) {
                             "${playbackState.speed.toInt()}.0x"
                         } else {
@@ -95,7 +84,8 @@ fun AudioPlayerBar(
                     }
                     FilledTonalIconButton(
                         onClick = onTogglePlayPause,
-                        modifier = Modifier.size(38.dp)
+                        shape = RectangleShape,
+                        modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
                             imageVector = if (playbackState.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
@@ -105,7 +95,7 @@ fun AudioPlayerBar(
                     IconButton(onClick = onClose, modifier = Modifier.size(34.dp)) {
                         Icon(
                             imageVector = Icons.Rounded.Close,
-                            contentDescription = "關閉播放器",
+                            contentDescription = "關閉",
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -117,7 +107,7 @@ fun AudioPlayerBar(
                     onValueChange = { frac -> onSeek((frac * duration).toLong()) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(24.dp)
+                        .height(22.dp)
                 )
             }
         }
@@ -133,9 +123,9 @@ fun LiveAudioMeter(
 ) {
     val barFactors = listOf(0.35f, 0.65f, 0.9f, 1.0f, 0.8f, 0.55f, 0.95f, 0.7f, 0.45f)
     Row(
-        modifier = modifier.height(28.dp),
+        modifier = modifier.height(26.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(3.dp)
     ) {
         barFactors.forEachIndexed { idx, factor ->
             val target = if (isPaused) {
@@ -147,8 +137,7 @@ fun LiveAudioMeter(
             Box(
                 modifier = Modifier
                     .width(4.dp)
-                    .height((26 * animated).dp)
-                    .clip(CircleShape)
+                    .height((24 * animated).dp)
                     .background(barColor.copy(alpha = if (isPaused) 0.35f else 0.85f))
             )
         }

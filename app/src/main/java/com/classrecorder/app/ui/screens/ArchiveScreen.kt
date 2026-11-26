@@ -12,13 +12,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Search
@@ -36,7 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -45,7 +42,6 @@ import com.classrecorder.app.domain.FilenameHelper
 import com.classrecorder.app.ui.DayArchiveGroup
 import com.classrecorder.app.ui.MainUiState
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ArchiveScreen(
     uiState: MainUiState,
@@ -77,27 +73,20 @@ fun ArchiveScreen(
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    text = "每日紀錄與總結",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-                Text(
-                    text = "依日期整理每天錄下的課堂與筆記，點入即可播放或匯出給 AI 總結。",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            Text(
+                text = "紀錄與總結",
+                style = MaterialTheme.typography.headlineSmall
+            )
         }
 
         item {
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                placeholder = { Text("搜尋課名、筆記、作業或每日總結…") },
+                placeholder = { Text("搜尋課名、筆記或總結") },
                 leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
@@ -107,7 +96,7 @@ fun ArchiveScreen(
                     }
                 },
                 singleLine = true,
-                shape = RoundedCornerShape(14.dp),
+                shape = RectangleShape,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -115,24 +104,19 @@ fun ArchiveScreen(
         if (filteredGroups.isEmpty()) {
             item {
                 Surface(
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RectangleShape,
                     color = MaterialTheme.colorScheme.surface,
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
-                        modifier = Modifier.padding(24.dp),
+                        modifier = Modifier.padding(22.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text(
-                            text = if (searchQuery.isBlank()) "目前還沒有歷史錄音紀錄" else "找不到符合「$searchQuery」的紀錄",
+                            text = if (searchQuery.isBlank()) "尚無紀錄" else "查無符合資料",
                             style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = "排程或手動錄音結束後，每天的音檔與總結都會自動分類顯示在這裡。",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -166,16 +150,15 @@ private fun DayGroupCard(
         .take(5)
 
     Surface(
-        shape = RoundedCornerShape(16.dp),
+        shape = RectangleShape,
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
@@ -191,20 +174,20 @@ private fun DayGroupCard(
                         if (isToday) {
                             Spacer(modifier = Modifier.width(8.dp))
                             Surface(
-                                shape = RoundedCornerShape(999.dp),
+                                shape = RectangleShape,
                                 color = MaterialTheme.colorScheme.primaryContainer
                             ) {
                                 Text(
-                                    text = "今天",
+                                    text = "今日",
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                 )
                             }
                         }
                     }
                     Text(
-                        text = "$completedCount 段完成錄音 · 總時長 ${FilenameHelper.formatDuration(group.totalDurationMs)} · ${FilenameHelper.formatFileSize(group.totalSizeBytes)}",
+                        text = "$completedCount 段 · ${FilenameHelper.formatDuration(group.totalDurationMs)} · ${FilenameHelper.formatFileSize(group.totalSizeBytes)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -224,6 +207,7 @@ private fun DayGroupCard(
                     courseLabels.forEach { label ->
                         AssistChip(
                             onClick = onClick,
+                            shape = RectangleShape,
                             label = { Text(label, maxLines = 1) }
                         )
                     }
@@ -232,36 +216,24 @@ private fun DayGroupCard(
 
             if (group.summary != null && group.summary.summaryText.isNotBlank()) {
                 Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                    shape = RectangleShape,
+                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(
-                        modifier = Modifier.padding(10.dp),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.AutoAwesome,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Column {
-                            if (group.summary.title.isNotBlank()) {
-                                Text(
-                                    text = group.summary.title,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        if (group.summary.title.isNotBlank()) {
                             Text(
-                                text = group.summary.summaryText,
-                                style = MaterialTheme.typography.bodySmall,
-                                maxLines = 3,
-                                overflow = TextOverflow.Ellipsis
+                                text = group.summary.title,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold
                             )
                         }
+                        Text(
+                            text = group.summary.summaryText,
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = 3,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
                 }
             }

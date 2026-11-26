@@ -21,18 +21,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.AutoFixHigh
-import androidx.compose.material.icons.rounded.Brush
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.CleaningServices
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
@@ -56,8 +49,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -75,7 +68,6 @@ data class CourseBrushTemplate(
     val colorTag: Int
 )
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TimetableScreen(
     uiState: MainUiState,
@@ -91,7 +83,6 @@ fun TimetableScreen(
     var editingCell by remember { mutableStateOf<Pair<Int, PeriodDefinitionEntity>?>(null) }
     var showPeriodManager by remember { mutableStateOf(false) }
 
-    // Quick-fill brush mode state
     var quickPaintEnabled by remember { mutableStateOf(false) }
     var brushCourseName by remember { mutableStateOf("") }
     var brushClassroom by remember { mutableStateOf("") }
@@ -114,18 +105,13 @@ fun TimetableScreen(
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = "每週課表排程",
+                    text = "課表排程",
                     style = MaterialTheme.typography.headlineSmall
-                )
-                Text(
-                    text = "預設早 1~4 節 08:10 起、午 5~9 節 12:50 起（每節 50 分鐘）；可點「批次填課」快速連點多節或單格設定連堂。",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -134,31 +120,25 @@ fun TimetableScreen(
                     if (quickPaintEnabled) {
                         Button(
                             onClick = { quickPaintEnabled = false },
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RectangleShape,
                             modifier = Modifier.weight(1f)
                         ) {
-                            Icon(Icons.Rounded.Check, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("完成批次填課")
+                            Text("完成填課")
                         }
                     } else {
                         FilledTonalButton(
                             onClick = { quickPaintEnabled = true },
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RectangleShape,
                             modifier = Modifier.weight(1f)
                         ) {
-                            Icon(Icons.Rounded.Brush, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("批次填課（連選）")
+                            Text("批次填課")
                         }
                     }
 
                     OutlinedButton(
                         onClick = { showPeriodManager = true },
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RectangleShape
                     ) {
-                        Icon(Icons.Rounded.Schedule, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
                         Text("編輯節次")
                     }
                 }
@@ -190,48 +170,36 @@ fun TimetableScreen(
         if (!hasAnyEnabledSlot && !quickPaintEnabled) {
             item {
                 Surface(
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RectangleShape,
                     color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
-                        modifier = Modifier.padding(14.dp),
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Rounded.AutoFixHigh,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
+                        Text(
+                            text = "套用第 3、4 節範例課表",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.weight(1f)
                         )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "想快速試用看看？",
-                                style = MaterialTheme.typography.titleSmall
-                            )
-                            Text(
-                                text = "可一鍵套用「早上第 3、4 節（10:10~11:00、11:10~12:00）」範例課表，再自由調整。",
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                        TextButton(onClick = onApplySampleMorning34) {
-                            Text("套用範例", fontWeight = FontWeight.Bold)
+                        TextButton(onClick = onApplySampleMorning34, shape = RectangleShape) {
+                            Text("套用", fontWeight = FontWeight.Bold)
                         }
                     }
                 }
             }
         }
 
-        // Weekday column headers
         item {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    .padding(top = 2.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(modifier = Modifier.width(66.dp)) {
+                Box(modifier = Modifier.width(64.dp)) {
                     Text(
                         text = "節次",
                         style = MaterialTheme.typography.labelMedium,
@@ -241,7 +209,7 @@ fun TimetableScreen(
                 daysToShow.forEach { dow ->
                     val isToday = (dow == uiState.todayDayOfWeek)
                     Surface(
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RectangleShape,
                         color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                         modifier = Modifier.weight(1f)
                     ) {
@@ -264,13 +232,12 @@ fun TimetableScreen(
         ) { period ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(
                     modifier = Modifier
-                        .width(66.dp)
-                        .clip(RoundedCornerShape(8.dp))
+                        .width(64.dp)
                         .clickable { showPeriodManager = true }
                         .padding(vertical = 4.dp, horizontal = 2.dp)
                 ) {
@@ -303,19 +270,18 @@ fun TimetableScreen(
                         MaterialTheme.colorScheme.surface
                     }
                     val borderColor = when {
-                        enabled -> tagColor.copy(alpha = 0.7f)
-                        quickPaintEnabled -> MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
+                        enabled -> tagColor.copy(alpha = 0.75f)
+                        quickPaintEnabled -> MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
                         else -> MaterialTheme.colorScheme.outline
                     }
 
                     Surface(
-                        shape = RoundedCornerShape(10.dp),
+                        shape = RectangleShape,
                         color = cellBg,
                         border = BorderStroke(if (enabled) 1.5.dp else 1.dp, borderColor),
                         modifier = Modifier
                             .weight(1f)
-                            .height(60.dp)
-                            .clip(RoundedCornerShape(10.dp))
+                            .height(58.dp)
                             .clickable {
                                 if (quickPaintEnabled) {
                                     onQuickPaintSlot(
@@ -405,14 +371,14 @@ private fun QuickPaintBrushCard(
     onSelectTemplate: (CourseBrushTemplate) -> Unit
 ) {
     Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f),
+        shape = RectangleShape,
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -420,7 +386,7 @@ private fun QuickPaintBrushCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = if (eraseMode) "清除模式：點課表格子立即清空" else "畫筆設定：設定後直接點擊下方格子連續填入",
+                    text = if (eraseMode) "點格子清除" else "點格子填入（再點取消）",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -429,39 +395,30 @@ private fun QuickPaintBrushCard(
                 FilterChip(
                     selected = eraseMode,
                     onClick = onToggleEraseMode,
-                    leadingIcon = {
-                        Icon(Icons.Rounded.CleaningServices, contentDescription = null, modifier = Modifier.size(16.dp))
-                    },
-                    label = { Text("橡皮擦") }
+                    shape = RectangleShape,
+                    label = { Text("清除模式") }
                 )
             }
 
             if (existingCourses.isNotEmpty()) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = "快速切換已填課程：",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        existingCourses.forEach { tpl ->
-                            val c = CourseTagColors[tpl.colorTag.mod(CourseTagColors.size)]
-                            AssistChip(
-                                onClick = { onSelectTemplate(tpl) },
-                                leadingIcon = {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(10.dp)
-                                            .clip(CircleShape)
-                                            .background(c)
-                                    )
-                                },
-                                label = { Text(tpl.courseName, maxLines = 1) }
-                            )
-                        }
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    existingCourses.forEach { tpl ->
+                        val c = CourseTagColors[tpl.colorTag.mod(CourseTagColors.size)]
+                        AssistChip(
+                            onClick = { onSelectTemplate(tpl) },
+                            shape = RectangleShape,
+                            leadingIcon = {
+                                Box(
+                                    modifier = Modifier
+                                        .size(10.dp)
+                                        .background(c)
+                                )
+                            },
+                            label = { Text(tpl.courseName, maxLines = 1) }
+                        )
                     }
                 }
             }
@@ -471,15 +428,16 @@ private fun QuickPaintBrushCard(
                     value = courseName,
                     onValueChange = onCourseNameChange,
                     label = { Text("課程名稱") },
-                    placeholder = { Text("例如：微積分") },
                     singleLine = true,
+                    shape = RectangleShape,
                     modifier = Modifier.weight(1.4f)
                 )
                 OutlinedTextField(
                     value = classroom,
                     onValueChange = onClassroomChange,
-                    label = { Text("教室(選填)") },
+                    label = { Text("教室（選填）") },
                     singleLine = true,
+                    shape = RectangleShape,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -488,12 +446,11 @@ private fun QuickPaintBrushCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Text("顏色：", style = MaterialTheme.typography.labelMedium)
+                Text("顏色", style = MaterialTheme.typography.labelMedium)
                 CourseTagColors.forEachIndexed { idx, color ->
                     Box(
                         modifier = Modifier
-                            .size(28.dp)
-                            .clip(CircleShape)
+                            .size(26.dp)
                             .background(color)
                             .clickable { onColorChange(idx) },
                         contentAlignment = Alignment.Center
@@ -535,6 +492,7 @@ private fun EditTimetableCellDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        shape = RectangleShape,
         title = { Text("${FilenameHelper.dayOfWeekLabel(dayOfWeek)} ${tappedPeriod.name}（$timeRange）") },
         text = {
             Column(
@@ -548,14 +506,14 @@ private fun EditTimetableCellDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("啟用此時段自動錄音", style = MaterialTheme.typography.bodyMedium)
+                    Text("自動錄音", style = MaterialTheme.typography.bodyMedium)
                     Switch(checked = enabled, onCheckedChange = { enabled = it })
                 }
 
                 if (existingCourses.isNotEmpty()) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
-                            text = "快速套用已有課程（帶入名稱與顏色）：",
+                            text = "已有課程",
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -572,11 +530,11 @@ private fun EditTimetableCellDialog(
                                         colorTag = tpl.colorTag
                                         enabled = true
                                     },
+                                    shape = RectangleShape,
                                     leadingIcon = {
                                         Box(
                                             modifier = Modifier
                                                 .size(10.dp)
-                                                .clip(CircleShape)
                                                 .background(c)
                                         )
                                     },
@@ -590,27 +548,28 @@ private fun EditTimetableCellDialog(
                 OutlinedTextField(
                     value = courseName,
                     onValueChange = { courseName = it },
-                    label = { Text("課程／事件名稱（例如：微積分）") },
+                    label = { Text("課程名稱") },
                     singleLine = true,
+                    shape = RectangleShape,
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 OutlinedTextField(
                     value = classroom,
                     onValueChange = { classroom = it },
-                    label = { Text("教室／老師備註（選填）") },
+                    label = { Text("教室（選填）") },
                     singleLine = true,
+                    shape = RectangleShape,
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("課表標籤顏色", style = MaterialTheme.typography.labelMedium)
+                    Text("標籤色", style = MaterialTheme.typography.labelMedium)
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         CourseTagColors.forEachIndexed { idx, color ->
                             Box(
                                 modifier = Modifier
-                                    .size(28.dp)
-                                    .clip(CircleShape)
+                                    .size(26.dp)
                                     .background(color)
                                     .clickable { colorTag = idx },
                                 contentAlignment = Alignment.Center
@@ -632,12 +591,12 @@ private fun EditTimetableCellDialog(
 
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
-                        text = "連堂快選（同時套用至${FilenameHelper.dayOfWeekLabel(dayOfWeek)}多節）：",
+                        text = "套用節次",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        listOf(1 to "僅本節", 2 to "連 2 節", 3 to "連 3 節").forEach { (span, label) ->
+                        listOf(1 to "本節", 2 to "連 2 節", 3 to "連 3 節").forEach { (span, label) ->
                             val targetIds = allPeriods
                                 .drop(tappedIndex)
                                 .take(span)
@@ -647,6 +606,7 @@ private fun EditTimetableCellDialog(
                             FilterChip(
                                 selected = isSelected,
                                 onClick = { selectedPeriodIds = targetIds },
+                                shape = RectangleShape,
                                 label = { Text(label) }
                             )
                         }
@@ -666,6 +626,7 @@ private fun EditTimetableCellDialog(
                                         selectedPeriodIds + p.id
                                     }
                                 },
+                                shape = RectangleShape,
                                 label = { Text(p.name) }
                             )
                         }
@@ -674,18 +635,21 @@ private fun EditTimetableCellDialog(
             }
         },
         confirmButton = {
-            Button(onClick = {
-                val orderedSelected = allPeriods
-                    .filter { it.id in selectedPeriodIds }
-                    .map { it.id }
-                    .ifEmpty { listOf(tappedPeriod.id) }
-                onSaveBatch(orderedSelected, enabled, courseName, classroom, colorTag)
-            }) {
-                Text(if (selectedPeriodIds.size > 1) "套用至 ${selectedPeriodIds.size} 節" else "儲存")
+            Button(
+                shape = RectangleShape,
+                onClick = {
+                    val orderedSelected = allPeriods
+                        .filter { it.id in selectedPeriodIds }
+                        .map { it.id }
+                        .ifEmpty { listOf(tappedPeriod.id) }
+                    onSaveBatch(orderedSelected, enabled, courseName, classroom, colorTag)
+                }
+            ) {
+                Text(if (selectedPeriodIds.size > 1) "套用 ${selectedPeriodIds.size} 節" else "儲存")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = onDismiss, shape = RectangleShape) {
                 Text("取消")
             }
         }
@@ -705,7 +669,8 @@ private fun PeriodManagerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("管理學校節次與時間") },
+        shape = RectangleShape,
+        title = { Text("節次時間") },
         text = {
             Column(
                 modifier = Modifier
@@ -720,22 +685,22 @@ private fun PeriodManagerDialog(
                     OutlinedButton(
                         onClick = onApplyUniversityPreset,
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(10.dp)
+                        shape = RectangleShape
                     ) {
                         Text("預設 1~9 節", maxLines = 1)
                     }
                     OutlinedButton(
                         onClick = onApplyHighSchoolPreset,
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(10.dp)
+                        shape = RectangleShape
                     ) {
-                        Text("高中 13:05 午課", maxLines = 1)
+                        Text("高中午課", maxLines = 1)
                     }
                 }
 
                 periods.forEach { period ->
                     Surface(
-                        shape = RoundedCornerShape(10.dp),
+                        shape = RectangleShape,
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -786,16 +751,14 @@ private fun PeriodManagerDialog(
                         )
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RectangleShape
                 ) {
-                    Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("新增節次（例如第 10 節／晚自習）")
+                    Text("新增節次")
                 }
             }
         },
         confirmButton = {
-            Button(onClick = onDismiss) {
+            Button(onClick = onDismiss, shape = RectangleShape) {
                 Text("完成")
             }
         }
@@ -826,14 +789,16 @@ private fun EditSinglePeriodDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (period.id == 0L) "新增節次" else "編輯「${period.name}」") },
+        shape = RectangleShape,
+        title = { Text(if (period.id == 0L) "新增節次" else "編輯 ${period.name}") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("節次名稱（例如：第 5 節）") },
+                    label = { Text("節次名稱") },
                     singleLine = true,
+                    shape = RectangleShape,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -841,16 +806,16 @@ private fun EditSinglePeriodDialog(
                         value = startText,
                         onValueChange = { startText = it; errorText = null },
                         label = { Text("開始 (HH:mm)") },
-                        placeholder = { Text("12:50") },
                         singleLine = true,
+                        shape = RectangleShape,
                         modifier = Modifier.weight(1f)
                     )
                     OutlinedTextField(
                         value = endText,
                         onValueChange = { endText = it; errorText = null },
                         label = { Text("結束 (HH:mm)") },
-                        placeholder = { Text("13:40") },
                         singleLine = true,
+                        shape = RectangleShape,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -864,35 +829,38 @@ private fun EditSinglePeriodDialog(
             }
         },
         confirmButton = {
-            Button(onClick = {
-                val sMin = parseHmToMinute(startText)
-                val eMin = parseHmToMinute(endText)
-                if (name.isBlank()) {
-                    errorText = "請輸入節次名稱"
-                    return@Button
-                }
-                if (sMin == null || eMin == null) {
-                    errorText = "時間格式請輸入 HH:mm，例如 12:50"
-                    return@Button
-                }
-                val validationError = ScheduleCalculator.validatePeriodTime(sMin, eMin)
-                if (validationError != null) {
-                    errorText = validationError
-                    return@Button
-                }
-                onSave(
-                    period.copy(
-                        name = name.trim(),
-                        startMinuteOfDay = sMin,
-                        endMinuteOfDay = eMin
+            Button(
+                shape = RectangleShape,
+                onClick = {
+                    val sMin = parseHmToMinute(startText)
+                    val eMin = parseHmToMinute(endText)
+                    if (name.isBlank()) {
+                        errorText = "請輸入名稱"
+                        return@Button
+                    }
+                    if (sMin == null || eMin == null) {
+                        errorText = "格式需為 HH:mm"
+                        return@Button
+                    }
+                    val validationError = ScheduleCalculator.validatePeriodTime(sMin, eMin)
+                    if (validationError != null) {
+                        errorText = validationError
+                        return@Button
+                    }
+                    onSave(
+                        period.copy(
+                            name = name.trim(),
+                            startMinuteOfDay = sMin,
+                            endMinuteOfDay = eMin
+                        )
                     )
-                )
-            }) {
+                }
+            ) {
                 Text("儲存")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = onDismiss, shape = RectangleShape) {
                 Text("取消")
             }
         }

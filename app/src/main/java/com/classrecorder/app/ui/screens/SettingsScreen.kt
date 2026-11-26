@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
@@ -33,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import com.classrecorder.app.data.prefs.AudioQualityPreset
 import com.classrecorder.app.data.prefs.UserSettings
@@ -62,11 +62,11 @@ fun SettingsScreen(
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
             Text(
-                text = "偏好與系統設定",
+                text = "設定",
                 style = MaterialTheme.typography.headlineSmall
             )
         }
@@ -83,16 +83,16 @@ fun SettingsScreen(
 
         item {
             Surface(
-                shape = RoundedCornerShape(16.dp),
+                shape = RectangleShape,
                 color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                    modifier = Modifier.padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text("錄音格式與音質（.m4a / AAC）", style = MaterialTheme.typography.titleMedium)
+                    Text("錄音音質（.m4a）", style = MaterialTheme.typography.titleMedium)
                     AudioQualityPreset.entries.forEach { preset ->
                         Row(
                             modifier = Modifier
@@ -122,21 +122,16 @@ fun SettingsScreen(
 
         item {
             Surface(
-                shape = RoundedCornerShape(16.dp),
+                shape = RectangleShape,
                 color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    modifier = Modifier.padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("上下課前後緩衝時間", style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        text = "若老師常在打鐘前開口或拖堂，可設定自動提前開始或延後停止。",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text("緩衝時間", style = MaterialTheme.typography.titleMedium)
 
                     Text("提前開錄", style = MaterialTheme.typography.labelMedium)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -144,7 +139,8 @@ fun SettingsScreen(
                             FilterChip(
                                 selected = (uiState.settings.startBufferSeconds == sec),
                                 onClick = { onUpdateBuffers(sec, uiState.settings.endBufferSeconds) },
-                                label = { Text(if (sec == 0) "準時" else "提早 ${sec} 秒") }
+                                shape = RectangleShape,
+                                label = { Text(if (sec == 0) "準時" else "${sec}秒") }
                             )
                         }
                     }
@@ -155,7 +151,8 @@ fun SettingsScreen(
                             FilterChip(
                                 selected = (uiState.settings.endBufferSeconds == sec),
                                 onClick = { onUpdateBuffers(uiState.settings.startBufferSeconds, sec) },
-                                label = { Text(if (sec == 0) "準時" else "延後 ${sec} 秒") }
+                                shape = RectangleShape,
+                                label = { Text(if (sec == 0) "準時" else "${sec}秒") }
                             )
                         }
                     }
@@ -165,29 +162,22 @@ fun SettingsScreen(
 
         item {
             Surface(
-                shape = RoundedCornerShape(16.dp),
+                shape = RectangleShape,
                 color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier.padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text("課表與排程行為", style = MaterialTheme.typography.titleMedium)
+                    Text("排程選項", style = MaterialTheme.typography.titleMedium)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("顯示週六與週日課表", style = MaterialTheme.typography.bodyMedium)
-                            Text(
-                                "適合週末補習班、研討會或社團活動排程",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        Text("顯示週六日", style = MaterialTheme.typography.bodyMedium)
                         Switch(
                             checked = uiState.settings.showWeekends,
                             onCheckedChange = onToggleShowWeekends
@@ -200,9 +190,9 @@ fun SettingsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("放學後跨夜維持待機守候", style = MaterialTheme.typography.bodyMedium)
+                            Text("跨夜維持守候", style = MaterialTheme.typography.bodyMedium)
                             Text(
-                                "關閉時（推薦）：今日最後一節課結束後自動卸除待機並通知整理總結；開啟時：隔天早上免再開 App 即可自動開錄。",
+                                "關閉：放學後結束待機；開啟：隔日自動開錄",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -218,27 +208,27 @@ fun SettingsScreen(
 
         item {
             Surface(
-                shape = RoundedCornerShape(16.dp),
+                shape = RectangleShape,
                 color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(14.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("AI 總結提示詞範本", style = MaterialTheme.typography.titleMedium)
+                    Text("AI 提示詞範本", style = MaterialTheme.typography.titleMedium)
                     Text(
                         text = uiState.settings.aiPromptTemplate,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 4
+                        maxLines = 3
                     )
                     OutlinedButton(
                         onClick = { showPromptDialog = true },
-                        shape = RoundedCornerShape(10.dp)
+                        shape = RectangleShape
                     ) {
-                        Text("自訂 AI 提示詞範本")
+                        Text("編輯範本")
                     }
                 }
             }
@@ -246,18 +236,18 @@ fun SettingsScreen(
 
         item {
             Surface(
-                shape = RoundedCornerShape(16.dp),
+                shape = RectangleShape,
                 color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(14.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text("本機儲存空間", style = MaterialTheme.typography.titleMedium)
+                    Text("本機空間", style = MaterialTheme.typography.titleMedium)
                     Text(
-                        text = "目前已使用 ${FilenameHelper.formatFileSize(uiState.totalStorageBytes)}（所有錄音皆存於本機私有空間，未經您的匯出不會上傳至任何伺服器）。",
+                        text = "已使用 ${FilenameHelper.formatFileSize(uiState.totalStorageBytes)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -288,7 +278,8 @@ private fun PromptEditorDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("編輯 AI 總結提示詞範本") },
+        shape = RectangleShape,
+        title = { Text("提示詞範本") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
@@ -296,20 +287,24 @@ private fun PromptEditorDialog(
                     onValueChange = { text = it },
                     minLines = 6,
                     maxLines = 12,
+                    shape = RectangleShape,
                     modifier = Modifier.fillMaxWidth()
                 )
-                TextButton(onClick = { text = UserSettings.DEFAULT_AI_PROMPT_TEMPLATE }) {
-                    Text("恢復預設範本")
+                TextButton(
+                    onClick = { text = UserSettings.DEFAULT_AI_PROMPT_TEMPLATE },
+                    shape = RectangleShape
+                ) {
+                    Text("恢復預設")
                 }
             }
         },
         confirmButton = {
-            Button(onClick = { onSave(text) }) {
+            Button(onClick = { onSave(text) }, shape = RectangleShape) {
                 Text("儲存")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = onDismiss, shape = RectangleShape) {
                 Text("取消")
             }
         }

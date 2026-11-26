@@ -10,29 +10,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AutoAwesome
-import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.EditNote
-import androidx.compose.material.icons.rounded.FiberManualRecord
-import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.Share
-import androidx.compose.material.icons.rounded.SkipNext
-import androidx.compose.material.icons.rounded.Stop
-import androidx.compose.material.icons.automirrored.rounded.Undo
-import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -52,7 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -101,25 +89,19 @@ fun TodayScreen(
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "${uiState.todayDateIso} · ${FilenameHelper.dayOfWeekLabel(uiState.todayDayOfWeek)}",
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                    Text(
-                        text = "今日排程 ${uiState.todayScheduledSlots.count { !it.isSkipped }} 節 · 已完成錄音 $completedTodayCount 段",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+            Column {
+                Text(
+                    text = "${uiState.todayDateIso} · ${FilenameHelper.dayOfWeekLabel(uiState.todayDayOfWeek)}",
+                    style = MaterialTheme.typography.headlineSmall
+                )
+                Text(
+                    text = "排程 ${uiState.todayScheduledSlots.count { !it.isSkipped }} 節 · 已錄 $completedTodayCount 段",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
 
@@ -163,12 +145,10 @@ fun TodayScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "今日課表與錄音時間軸",
+                    text = "今日時間軸",
                     style = MaterialTheme.typography.titleMedium
                 )
-                TextButton(onClick = onGoToTimetable) {
-                    Icon(Icons.Rounded.CalendarMonth, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
+                TextButton(onClick = onGoToTimetable, shape = RectangleShape) {
                     Text("調整課表")
                 }
             }
@@ -205,7 +185,7 @@ fun TodayScreen(
         if (manualTodayRecordings.isNotEmpty()) {
             item {
                 Text(
-                    text = "今日手動／額外錄音",
+                    text = "手動錄音",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp)
@@ -241,10 +221,12 @@ fun TodayScreen(
     pendingDeleteRecording?.let { rec ->
         AlertDialog(
             onDismissRequest = { pendingDeleteRecording = null },
-            title = { Text("刪除這段錄音？") },
-            text = { Text("確定要刪除「${rec.courseName.ifBlank { rec.periodName }}」(${rec.fileName}) 嗎？此操作無法復原。") },
+            shape = RectangleShape,
+            title = { Text("刪除錄音？") },
+            text = { Text("確定要刪除「${rec.courseName.ifBlank { rec.periodName }}」？") },
             confirmButton = {
                 Button(
+                    shape = RectangleShape,
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     onClick = {
                         onDeleteRecording(rec)
@@ -255,7 +237,7 @@ fun TodayScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { pendingDeleteRecording = null }) {
+                TextButton(onClick = { pendingDeleteRecording = null }, shape = RectangleShape) {
                     Text("取消")
                 }
             }
@@ -270,42 +252,31 @@ private fun PermissionWarningBanner(
     onOpenSettings: () -> Unit
 ) {
     Surface(
-        shape = RoundedCornerShape(14.dp),
+        shape = RectangleShape,
         color = MaterialTheme.colorScheme.tertiaryContainer,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Rounded.WarningAmber,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onTertiaryContainer
+            Text(
+                text = if (!permissionStatus.allCriticalReady) {
+                    "尚未授予麥克風或通知權限"
+                } else {
+                    "建議開啟精準鬧鐘權限"
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                modifier = Modifier.weight(1f)
             )
-            Spacer(modifier = Modifier.width(10.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = if (!permissionStatus.allCriticalReady) {
-                        "需要麥克風與通知權限才能自動錄音"
-                    } else {
-                        "建議開啟「精準鬧鐘」權限以確保準時開錄"
-                    },
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer
-                )
-                Text(
-                    text = "設定好權限後，系統就能依照課表自動切換錄音時段。",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.85f)
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
             TextButton(
-                onClick = if (!permissionStatus.allCriticalReady) onRequestBasic else onOpenSettings
+                onClick = if (!permissionStatus.allCriticalReady) onRequestBasic else onOpenSettings,
+                shape = RectangleShape
             ) {
                 Text(
-                    text = if (!permissionStatus.allCriticalReady) "立即授權" else "去設定",
+                    text = if (!permissionStatus.allCriticalReady) "授權" else "設定",
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -332,7 +303,7 @@ private fun RecorderStatusHeroCard(
     val containerColor = when {
         isLive -> MaterialTheme.colorScheme.errorContainer
         isArmed -> MaterialTheme.colorScheme.secondaryContainer
-        else -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f)
+        else -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
     }
     val contentColor = when {
         isLive -> MaterialTheme.colorScheme.onErrorContainer
@@ -341,13 +312,13 @@ private fun RecorderStatusHeroCard(
     }
 
     Surface(
-        shape = RoundedCornerShape(20.dp),
+        shape = RectangleShape,
         color = containerColor,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             if (isLive) {
                 Row(
@@ -356,15 +327,14 @@ private fun RecorderStatusHeroCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Rounded.FiberManualRecord,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(16.dp)
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .background(MaterialTheme.colorScheme.error)
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = if (st.phase == RecorderPhase.PAUSED) "錄音已暫停" else "正在錄音中",
+                            text = if (st.phase == RecorderPhase.PAUSED) "已暫停" else "錄音中",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             color = contentColor
@@ -403,67 +373,49 @@ private fun RecorderStatusHeroCard(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     FilledTonalButton(
                         onClick = onTogglePauseResume,
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RectangleShape
                     ) {
-                        Icon(
-                            imageVector = if (st.phase == RecorderPhase.PAUSED) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
                         Text(if (st.phase == RecorderPhase.PAUSED) "繼續" else "暫停")
                     }
                     Button(
                         onClick = onStopRecording,
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RectangleShape
                     ) {
-                        Icon(Icons.Rounded.Stop, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("停止並儲存")
+                        Text("停止")
                     }
                 }
             } else if (isArmed) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Rounded.Schedule,
-                        contentDescription = null,
-                        tint = contentColor
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "排程自動守候中（可鎖定螢幕）",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = contentColor
-                    )
-                }
                 Text(
-                    text = st.nextSlotSummary.ifBlank { "等待下一個課表時段自動開錄" },
+                    text = "排程守候中",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = contentColor
+                )
+                Text(
+                    text = st.nextSlotSummary.ifBlank { "等待下一節自動開錄" },
                     style = MaterialTheme.typography.bodyMedium,
                     color = contentColor
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Button(
                         onClick = { if (hasMicPermission) onOpenManualDialog() else onRequestPermission() },
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RectangleShape
                     ) {
-                        Icon(Icons.Rounded.Mic, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("手動立即錄音")
+                        Text("手動錄音")
                     }
                     OutlinedButton(
                         onClick = onDisarmSchedule,
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RectangleShape
                     ) {
                         Text("停止守候")
                     }
@@ -472,17 +424,17 @@ private fun RecorderStatusHeroCard(
                 val activeNow = uiState.activeSlotNow
                 val nextSlot = uiState.nextUpcomingSlot
                 Text(
-                    text = "自動排程尚未啟動守候",
+                    text = "未開啟排程守候",
                     style = MaterialTheme.typography.titleMedium,
                     color = contentColor
                 )
                 val desc = when {
-                    activeNow != null -> "現在正在 ${activeNow.displayTitle}（${activeNow.timeRangeText}）時段內，點擊下方按鈕即可開錄並守候後續課程。"
+                    activeNow != null -> "目前時段：${activeNow.displayTitle}（${activeNow.timeRangeText}）"
                     nextSlot != null -> {
-                        val dayPrefix = if (nextSlot.dateIso == uiState.todayDateIso) "今天" else "${nextSlot.date.monthValue}/${nextSlot.date.dayOfMonth}"
-                        "下一段排程：$dayPrefix ${nextSlot.timeRangeText} · ${nextSlot.displayTitle}"
+                        val dayPrefix = if (nextSlot.dateIso == uiState.todayDateIso) "今日" else "${nextSlot.date.monthValue}/${nextSlot.date.dayOfMonth}"
+                        "下一節：$dayPrefix ${nextSlot.timeRangeText} ${nextSlot.displayTitle}"
                     }
-                    else -> "尚未設定上課節次，請先至「課表」勾選要錄音的時段，或使用手動錄音。"
+                    else -> "尚未設定上課時段"
                 }
                 Text(
                     text = desc,
@@ -494,34 +446,28 @@ private fun RecorderStatusHeroCard(
                     Button(
                         onClick = { if (hasMicPermission) onStartSlotNow(activeNow) else onRequestPermission() },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RectangleShape
                     ) {
-                        Icon(Icons.Rounded.Mic, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("立即補錄「${activeNow.displayTitle}」並接續排程")
+                        Text("補錄「${activeNow.displayTitle}」並開啟守候")
                     }
                 }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Button(
                         onClick = { if (hasMicPermission) onArmSchedule() else onRequestPermission() },
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RectangleShape
                     ) {
-                        Icon(Icons.Rounded.Schedule, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("開啟排程守候")
+                        Text("開啟守候")
                     }
                     FilledTonalButton(
                         onClick = { if (hasMicPermission) onOpenManualDialog() else onRequestPermission() },
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RectangleShape
                     ) {
-                        Icon(Icons.Rounded.Mic, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
                         Text("手動錄音")
                     }
                 }
@@ -538,34 +484,19 @@ private fun AfterSchoolSummaryCard(
     onOpenExport: () -> Unit
 ) {
     Surface(
-        shape = RoundedCornerShape(16.dp),
+        shape = RectangleShape,
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Rounded.AutoAwesome,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (summaryTitle.isNotBlank()) "今日總結 · $summaryTitle" else "放學後 · 今日總結與 AI 匯出",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
-            }
+            Text(
+                text = if (summaryTitle.isNotBlank()) "今日總結 · $summaryTitle" else "今日總結",
+                style = MaterialTheme.typography.titleMedium
+            )
             if (summaryText.isNotBlank()) {
                 Text(
                     text = summaryText,
@@ -573,13 +504,9 @@ private fun AfterSchoolSummaryCard(
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis
                 )
-            } else {
+            } else if (completedCount > 0) {
                 Text(
-                    text = if (completedCount > 0) {
-                        "今天已完成 $completedCount 段錄音。點下方按鈕可一鍵複製 AI 提示詞並分享全部音檔給 Gemini / ChatGPT 總結，或記錄今天的心得。"
-                    } else {
-                        "錄完今天的課程後，可在此打包分享所有錄音給 AI 幫你整理今日重點、時間軸與作業提醒。"
-                    },
+                    text = "今日已完成 $completedCount 段錄音。",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -587,11 +514,9 @@ private fun AfterSchoolSummaryCard(
             FilledTonalButton(
                 onClick = onOpenExport,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RectangleShape
             ) {
-                Icon(Icons.Rounded.Share, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(if (summaryText.isNotBlank()) "編輯總結 ／ 匯出給 AI" else "一鍵匯出給 AI 總結 ／ 寫今日總結")
+                Text(if (summaryText.isNotBlank()) "編輯 ／ 匯出" else "匯出音檔 ／ 寫總結")
             }
         }
     }
@@ -600,30 +525,30 @@ private fun AfterSchoolSummaryCard(
 @Composable
 private fun EmptyTodayScheduleCard(onGoToTimetable: () -> Unit) {
     Surface(
-        shape = RoundedCornerShape(16.dp),
+        shape = RectangleShape,
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(18.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "今天還沒有排定自動錄音的課堂",
+                text = "今日無排程",
                 style = MaterialTheme.typography.titleMedium
             )
             Text(
-                text = "到「課表」頁面點選今天有課的節次（例如早上第 3 節 10:10~11:00、第 4 節 11:10~12:00），時間到就會自動分段錄音。",
+                text = "請至「課表」設定自動錄音時段。",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Button(
                 onClick = onGoToTimetable,
-                shape = RoundedCornerShape(12.dp)
+                shape = RectangleShape
             ) {
-                Text("前往設定週課表")
+                Text("設定課表")
             }
         }
     }
@@ -652,11 +577,11 @@ private fun ScheduledSlotTimelineCard(
 
     val statusText = when {
         isLiveNow -> "錄音中"
-        slotInstance.isSkipped -> "今日跳過"
-        hasCompleted -> "已錄音 (${recordings.count { it.status == RecordingStatus.COMPLETED }} 段)"
-        isCurrent -> "上課時段中"
-        isPast -> "時段已結束"
-        else -> "待自動錄音"
+        slotInstance.isSkipped -> "已跳過"
+        hasCompleted -> "已錄 ${recordings.count { it.status == RecordingStatus.COMPLETED }} 段"
+        isCurrent -> "進行中"
+        isPast -> "已結束"
+        else -> "待錄音"
     }
 
     val statusBg = when {
@@ -668,7 +593,7 @@ private fun ScheduledSlotTimelineCard(
     }
 
     Surface(
-        shape = RoundedCornerShape(16.dp),
+        shape = RectangleShape,
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(
             width = if (isLiveNow || isCurrent) 1.5.dp else 1.dp,
@@ -678,7 +603,7 @@ private fun ScheduledSlotTimelineCard(
     ) {
         Column(
             modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -687,7 +612,6 @@ private fun ScheduledSlotTimelineCard(
                 Box(
                     modifier = Modifier
                         .size(10.dp)
-                        .clip(CircleShape)
                         .background(if (slotInstance.isSkipped) MaterialTheme.colorScheme.outline else tagColor)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -703,13 +627,13 @@ private fun ScheduledSlotTimelineCard(
                     )
                 }
                 Surface(
-                    shape = RoundedCornerShape(999.dp),
+                    shape = RectangleShape,
                     color = statusBg
                 ) {
                     Text(
                         text = statusText,
                         style = MaterialTheme.typography.labelMedium,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }
             }
@@ -722,24 +646,16 @@ private fun ScheduledSlotTimelineCard(
                     if (isCurrent && !slotInstance.isSkipped) {
                         FilledTonalButton(
                             onClick = onStartSlotNow,
-                            shape = RoundedCornerShape(10.dp)
+                            shape = RectangleShape
                         ) {
-                            Icon(Icons.Rounded.Mic, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("立即開始錄音")
+                            Text("立即開錄")
                         }
                     }
                     OutlinedButton(
                         onClick = onToggleSkip,
-                        shape = RoundedCornerShape(10.dp)
+                        shape = RectangleShape
                     ) {
-                        Icon(
-                            imageVector = if (slotInstance.isSkipped) Icons.AutoMirrored.Rounded.Undo else Icons.Rounded.SkipNext,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(if (slotInstance.isSkipped) "恢復今日排程" else "今日跳過")
+                        Text(if (slotInstance.isSkipped) "恢復" else "跳過")
                     }
                 }
             }
@@ -770,28 +686,22 @@ fun RecordingItemCard(
     onDelete: () -> Unit
 ) {
     Surface(
-        shape = RoundedCornerShape(16.dp),
+        shape = RectangleShape,
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "${recording.periodName} · ${AiExportFormatter.formatRecordingTimeRange(recording)}",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = recording.courseName.ifBlank { recording.periodName },
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
+            Column {
+                Text(
+                    text = "${recording.periodName} · ${AiExportFormatter.formatRecordingTimeRange(recording)}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = recording.courseName.ifBlank { recording.periodName },
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
             RecordingInlineRow(
                 recording = recording,
@@ -817,7 +727,7 @@ fun RecordingInlineRow(
     onDelete: () -> Unit
 ) {
     Surface(
-        shape = RoundedCornerShape(12.dp),
+        shape = RectangleShape,
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -830,7 +740,7 @@ fun RecordingInlineRow(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (!isCurrentlyRecording && recording.status == RecordingStatus.COMPLETED) {
-                    IconButton(onClick = onTogglePlay, modifier = Modifier.size(36.dp)) {
+                    IconButton(onClick = onTogglePlay, modifier = Modifier.size(34.dp)) {
                         Icon(
                             imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                             contentDescription = if (isPlaying) "暫停" else "播放",
@@ -840,8 +750,8 @@ fun RecordingInlineRow(
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     val info = when {
-                        isCurrentlyRecording -> "正在錄音中…"
-                        recording.status == RecordingStatus.FAILED -> "錄音失敗或檔案過短"
+                        isCurrentlyRecording -> "錄音中"
+                        recording.status == RecordingStatus.FAILED -> "錄音失敗"
                         else -> "${FilenameHelper.formatDuration(recording.durationMs)} · ${FilenameHelper.formatFileSize(recording.fileSizeBytes)}"
                     }
                     Text(
@@ -857,23 +767,23 @@ fun RecordingInlineRow(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                IconButton(onClick = onEditNotes, modifier = Modifier.size(34.dp)) {
+                IconButton(onClick = onEditNotes, modifier = Modifier.size(32.dp)) {
                     Icon(
                         imageVector = Icons.Rounded.EditNote,
-                        contentDescription = "課堂筆記",
+                        contentDescription = "筆記",
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
                 if (!isCurrentlyRecording && recording.status == RecordingStatus.COMPLETED) {
-                    IconButton(onClick = onShare, modifier = Modifier.size(34.dp)) {
+                    IconButton(onClick = onShare, modifier = Modifier.size(32.dp)) {
                         Icon(
                             imageVector = Icons.Rounded.Share,
-                            contentDescription = "分享音檔"
+                            contentDescription = "分享"
                         )
                     }
                 }
                 if (!isCurrentlyRecording) {
-                    IconButton(onClick = onDelete, modifier = Modifier.size(34.dp)) {
+                    IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
                         Icon(
                             imageVector = Icons.Rounded.DeleteOutline,
                             contentDescription = "刪除",
@@ -898,7 +808,7 @@ fun RecordingInlineRow(
                     }
                     if (recording.homeworkNote.isNotBlank()) {
                         Text(
-                            text = "作業／提醒：${recording.homeworkNote}",
+                            text = "作業：${recording.homeworkNote}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.tertiary,
                             maxLines = 2,
@@ -907,7 +817,7 @@ fun RecordingInlineRow(
                     }
                     if (recording.aiTranscriptOrSummary.isNotBlank()) {
                         Text(
-                            text = "單節摘要：${recording.aiTranscriptOrSummary}",
+                            text = "摘要：${recording.aiTranscriptOrSummary}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary,
                             maxLines = 2,
@@ -928,26 +838,25 @@ private fun ManualRecordDialog(
     var label by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("手動立即錄音") },
+        shape = RectangleShape,
+        title = { Text("手動錄音") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("可輸入這段錄音的名稱（例如：社團開會、補課、班會），留空則預設為「手動錄音」。")
-                OutlinedTextField(
-                    value = label,
-                    onValueChange = { label = it },
-                    label = { Text("事件／課程名稱（選填）") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+            OutlinedTextField(
+                value = label,
+                onValueChange = { label = it },
+                label = { Text("名稱（選填）") },
+                singleLine = true,
+                shape = RectangleShape,
+                modifier = Modifier.fillMaxWidth()
+            )
         },
         confirmButton = {
-            Button(onClick = { onStart(label) }) {
-                Text("開始錄音")
+            Button(onClick = { onStart(label) }, shape = RectangleShape) {
+                Text("開始")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = onDismiss, shape = RectangleShape) {
                 Text("取消")
             }
         }

@@ -22,9 +22,12 @@ import androidx.compose.material.icons.rounded.AutoStories
 import androidx.compose.material.icons.rounded.CalendarViewWeek
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Today
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -38,7 +41,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.classrecorder.app.data.db.RecordingEntity
@@ -56,7 +61,7 @@ import com.classrecorder.app.ui.theme.ClassRecorderTheme
 private enum class AppTab(val label: String, val icon: ImageVector) {
     TODAY("今日", Icons.Rounded.Today),
     TIMETABLE("課表", Icons.Rounded.CalendarViewWeek),
-    ARCHIVE("紀錄與總結", Icons.Rounded.AutoStories),
+    ARCHIVE("紀錄", Icons.Rounded.AutoStories),
     SETTINGS("設定", Icons.Rounded.Settings)
 }
 
@@ -234,13 +239,19 @@ private fun ClassRecorderRoot(
                         onCycleSpeed = { viewModel.playerController.cycleSpeed() },
                         onClose = { viewModel.playerController.stop() }
                     )
-                    NavigationBar {
+                    HorizontalDivider()
+                    NavigationBar(tonalElevation = 0.dp) {
                         AppTab.entries.forEachIndexed { idx, tab ->
                             NavigationBarItem(
                                 selected = (selectedTabIndex == idx),
                                 onClick = { selectedTabIndex = idx },
                                 icon = { Icon(tab.icon, contentDescription = tab.label) },
-                                label = { Text(tab.label) }
+                                label = { Text(tab.label) },
+                                colors = NavigationBarItemDefaults.colors(
+                                    indicatorColor = Color.Transparent,
+                                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                                    selectedTextColor = MaterialTheme.colorScheme.primary
+                                )
                             )
                         }
                     }

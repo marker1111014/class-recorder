@@ -16,6 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import com.classrecorder.app.data.db.RecordingEntity
 import com.classrecorder.app.domain.AiExportFormatter
@@ -35,8 +36,9 @@ fun NoteEditorDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        shape = RectangleShape,
         title = {
-            Text(text = "$title · 課堂筆記")
+            Text(text = "$title · 筆記")
         },
         text = {
             Column(
@@ -45,29 +47,32 @@ fun NoteEditorDialog(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Text(text = "${recording.dateIso} · $timeRange（${recording.periodName}）")
+                Text(text = "${recording.dateIso} · $timeRange")
                 OutlinedTextField(
                     value = classNote,
                     onValueChange = { classNote = it },
-                    label = { Text("上課重點 / 發生了什麼事") },
+                    label = { Text("課程重點") },
                     minLines = 3,
                     maxLines = 6,
+                    shape = RectangleShape,
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = homeworkNote,
                     onValueChange = { homeworkNote = it },
-                    label = { Text("作業 / 考試 / 老師交代事項") },
+                    label = { Text("作業／提醒") },
                     minLines = 2,
                     maxLines = 4,
+                    shape = RectangleShape,
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = aiSummary,
                     onValueChange = { aiSummary = it },
-                    label = { Text("單節 AI 摘要 / 逐字重點（選填）") },
+                    label = { Text("單節摘要（選填）") },
                     minLines = 2,
                     maxLines = 6,
+                    shape = RectangleShape,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -76,12 +81,12 @@ fun NoteEditorDialog(
             Button(onClick = {
                 onSave(classNote, homeworkNote, aiSummary)
                 onDismiss()
-            }) {
+            }, shape = RectangleShape) {
                 Text("儲存")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = onDismiss, shape = RectangleShape) {
                 Text("取消")
             }
         }
