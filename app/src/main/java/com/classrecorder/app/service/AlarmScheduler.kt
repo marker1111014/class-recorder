@@ -1,5 +1,6 @@
 package com.classrecorder.app.service
 
+import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
@@ -109,6 +110,7 @@ object AlarmScheduler {
         return target
     }
 
+    @SuppressLint("ScheduleExactAlarm", "MissingPermission")
     private fun scheduleExactOrFallback(
         context: Context,
         alarmManager: AlarmManager,

@@ -63,7 +63,7 @@ jobs:
         run: |
           if [ -n "$KEYSTORE_BASE64" ] && [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
             ./gradlew assembleRelease --no-daemon
-            echo "$KEYSTORE_BASE64" | base64 -d > release-keystore.jks
+            printf '%s' "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 -d > release-keystore.jks
             APKSIGNER=$(find "${ANDROID_HOME}/build-tools" -name apksigner | sort -V | tail -n1)
             UNSIGNED_APK="app/build/outputs/apk/release/app-release-unsigned.apk"
             SIGNED_APK="app/build/outputs/apk/release/app-release-signed.apk"

@@ -1,6 +1,7 @@
 package com.classrecorder.app.service
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -146,6 +147,7 @@ object NotificationHelper {
             .build()
     }
 
+    @SuppressLint("MissingPermission")
     fun showManualStartPromptNotification(
         context: Context,
         startServiceIntent: Intent,
@@ -182,6 +184,7 @@ object NotificationHelper {
         }
     }
 
+    @SuppressLint("MissingPermission")
     fun showAfterSchoolSummaryNotification(
         context: Context,
         recordedCountToday: Int,
